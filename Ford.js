@@ -348,7 +348,6 @@ async function createWidget() {
     lastRefresh.textColor = Color.lightGray()
 
     infoStack.addSpacer(10)
-    console.log(carData.error ? carData.error : 'error while showing error')
     info = carData.error ? carData.error : ''
     let errorText = infoStack.addText(info)
     errorText.font = Font.mediumSystemFont(10)
