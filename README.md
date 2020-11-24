@@ -14,6 +14,7 @@ This widget automatically fetches information about your ford car and displays t
 ## Features
 - Automatically fetch data from server (default every 5 minutes)
 - Store data on local device as fallback 
+- You can choose to store your credentials in a keychain (by default deactivated). After first successful run you can delete the credentials from the widget. But be careful: other widgets can also store and read data from the keychain!
 
 ## Todo
 - Display information for electric cars (don´t have one so I can´t test it)
@@ -24,7 +25,7 @@ This widget automatically fetches information about your ford car and displays t
 - Press "raw" in the upper left corner and copy everything after opening the Ford.js script
 - Open Scriptable App
 - Press on "+" in the upper right corner and paste the code
-- Insert your username, password of your Ford account and the VIN of your car (this information can be deleted after first successful run)
+- Insert your username, password of your Ford account and the VIN of your car (this information can be deleted after first successful run if keychain is used)
 - Make any additional changes you want (colors, text size, indicators of fuel bar and name/color/symbol of widget inside Scriptable App)
 - Go to your iOS homescreen and make a long press to enter "wiggle mode"
 - Press "+" on the upper left corner and choose "Scriptable" as a medium sized widget
