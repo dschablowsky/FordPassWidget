@@ -14,6 +14,7 @@ This widget automatically fetches information about your ford car and displays t
 ## Features
 - Automatically fetch data from server (default every 5 minutes)
 - Store data on local device as fallback 
+- With a tap on the address Apple Maps (or Google Maps) will open and automatically pin the position of your car
 - You can choose to store your credentials in a keychain (by default deactivated). After first successful run you can delete the credentials from the widget. But be careful: other widgets can also store and read data from the keychain!
 
 ## Todo
