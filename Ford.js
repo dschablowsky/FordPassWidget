@@ -107,7 +107,7 @@ const uniteOfLength = 'km' // or 'mi'
 const storeCredentialsInKeychain = false // or true
 
 /**
- * Only use these if you are have problems. Set them back to false once everything is working.
+ * Only use these if you have problems. Set them back to false once everything is working.
  * Otherwise the token and the pictures are newly fetched everytime the script is executed. 
  */
 const clearKeychainOnNextRun = false // false or true
@@ -120,7 +120,7 @@ const clearFileManagerOnNextRun = false // false or true
  * 
  */
 let textColor1 //header
-let TextColor2 //data
+let textColor2 //data
 let backColor //background
 let gasStation //image for gas station
 
