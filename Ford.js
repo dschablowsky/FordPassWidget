@@ -104,11 +104,15 @@ const useIndicators = true // indicators for fuel bar
 
 const uniteOfLength = 'km' // or 'mi'
 
+const storeCredentialsInKeychain = false // or true
+
+/**
+ * Only use these if you are have problems. Set them back to false once everything is working.
+ * Otherwise the token and the pictures are newly fetched everytime the script is executed. 
+ */
 const clearKeychainOnNextRun = false // false or true
 
 const clearFileManagerOnNextRun = false // false or true
-
-const storeCredentialsInKeychain = false // or true
 
 /**
  * 
