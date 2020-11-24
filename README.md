@@ -33,7 +33,10 @@ This widget automatically fetches information about your ford car and displays t
 
 ## Notes
 Don´t share your login data with anyone! With this information someone can read the status of your car of even control it!!
+
 Don´t set the refresh interval too low. Too much requests to the ford server can block you temporarily. Additionally the data stored on the ford server is only updated while the ignition is on. Therefore you´ll get the same old data until you turn on your car. Furthermore too much requests can slow down the servers performance and increase the chance that the api is changed.
+
+Use `clearKeychainOnNextRun` and `clearFileManagerOnNextRun` only if you are having trouble with the script. If both parameters are true, the auth_token and pictures are fetched everytime the script is executed. Once everything is working again, set both to `false`.
 
 ## Credits
 Thanks to [d4v3y0rk](https://github.com/d4v3y0rk) for finding out the information about the ford api. Additional thanks to [marco79cgn](https://github.com/marco79cgn) and [Tobias Battenberg](https://github.com/mountbatt) for your widgets. They inspired me to create my own widget!
