@@ -104,7 +104,7 @@ const useIndicators = true // indicators for fuel bar
 
 const uniteOfLength = 'km' // or 'mi'
 
-const clearKeychainOnNextRun = true // false or true
+const clearKeychainOnNextRun = false // false or true
 
 const clearFileManagerOnNextRun = false // false or true
 
