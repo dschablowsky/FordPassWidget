@@ -31,8 +31,13 @@
 /**************
 Version 1.0
 Changelog:
-  v1.0:
-          - Created first version of widget
+    v1.0:
+        - Created first version of widget
+
+    v.1.0.1
+        - Fixed small bug where the fuelLevel bar is not cut over 100%
+        - Fixed bug where positions without sub locality would show null
+        - Position value resizes now to 70% if address is too long. Testing this value, may need to decrease it further in future
 
 **************/
 
@@ -98,13 +103,11 @@ const UIValue = {
  */
 const refreshInterval = 5 // in minutes
 
-const mapProvider = 'apple' // or 'apple'
+const mapProvider = 'apple' // or 'google'
 
 const useIndicators = true // indicators for fuel bar
 
 const uniteOfLength = 'km' // or 'mi'
-
-const storeCredentialsInKeychain = false // or true
 
 /**
  * Only use these if you have problems. Set them back to false once everything is working.
@@ -113,6 +116,8 @@ const storeCredentialsInKeychain = false // or true
 const clearKeychainOnNextRun = false // false or true
 
 const clearFileManagerOnNextRun = false // false or true
+
+const storeCredentialsInKeychain = false // or true
 
 /**
  * 
@@ -326,6 +331,7 @@ async function createWidget() {
     textRow34.font = Font.mediumSystemFont(detailFontSizeMedium)
     textRow34.textColor = new Color(textColor2)
     textRow34.lineLimit = 2
+    textRow34.minimumScaleFactor = 0.7
     if (mapProvider == 'google') {
         textRow34.url = `https://www.google.com/maps/search/?api=1&query=${carData.latitude},${carData.longitude}`
     }
@@ -529,7 +535,7 @@ async function loadImage(imgUrl) {
 
 async function getPosition(data) {
     let loc = await Location.reverseGeocode(parseFloat(data.gps.latitude), parseFloat(data.gps.longitude))
-    return `${loc[0].name}, ${loc[0].subLocality}`
+    return `${loc[0].postalAddress.street}, ${loc[0].postalAddress.city}`
 }
 
 function saveDataToLocal(data) {
@@ -597,7 +603,7 @@ function createProgressBar(percent){
     bar.fillPath()
     // Fuel
     const fuel = new Path()
-    fuel.addRoundedRect(new Rect(0, 0, barWidth*percent/100, barHeight), 3, 2)
+    fuel.addRoundedRect(new Rect(0, 0, barWidth*fuelLevel/100, barHeight), 3, 2)
     bar.addPath(fuel)
     bar.setFillColor(new Color("2f78dd"))
     bar.fillPath()
