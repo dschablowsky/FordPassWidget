@@ -1,6 +1,6 @@
 # FordPass widget for iOS Scriptable 
 
-![](fp-widget.jpg)
+
 
 ## Intro
 This widget automatically fetches information about your ford car and displays them. The widget was tested on my own Ford Focus 2020 (EcoBoost 1.5) and with an iPhone 11 Pro Max.
@@ -17,9 +17,12 @@ This widget automatically fetches information about your ford car and displays t
 - With a tap on the address Apple Maps (or Google Maps) will open and automatically pin the position of your car
 - You can choose to store your credentials in a keychain (by default deactivated). After first successful run you can delete the credentials from the widget. But be careful: other widgets can also store and read data from the keychain!
 
+new features:
+- User can pick up to 6 elements to draw on widget
+- New elements added
+
 ## Todo
 - Display information for electric cars (don´t have one so I can´t test it)
-- User can pick up to 6 items to draw on widgets
 - Update function for widget
 
 ## Installation
