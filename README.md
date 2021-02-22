@@ -9,7 +9,7 @@ This widget automatically fetches information about your ford car and displays t
 - iOS 14
 - [Scriptable App](https://scriptable.app/) (free)
 - [FordPass account](https://sso.ci.ford.com/authsvc/mtfim/sps/authsvc?PolicyId=urn:ibm:security:authentication:asf:basicldapuser&Target=https%3A%2F%2Fsso.ci.ford.com%2Foidc%2Fendpoint%2Fdefault%2Fauthorize%3FqsId%3D1f0281db-c684-454a-8d31-0c0f297cc9ed%26client_id%3D880cf418-6345-4e3b-81cd-7b623309b571&identity_source_id=75d08ad1-510f-468a-b69b-5ebc34f773e3#appID=CCCA9FB8-B941-46AD-A89F-F9D9D699DD68&propertySpecificContentKey=brand_ford&originURL=https%3A%2F%2Fwww.ford.com%2F&lang=en_us&fsURL=https%3A%2F%2Fapi.mps.ford.com) (has to be working with FordPass app, NOT MyFord Mobile since this are two different systems)
-- Compatible ford model 
+- Compatible ford model (with FordPass Connect Modem equiped)
 
 ## Features
 - Automatically fetch data from server (default every 5 minutes)
