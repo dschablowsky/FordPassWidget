@@ -1,6 +1,6 @@
 # FordPass widget for iOS Scriptable 
 
-
+![](fp-widget.jpg)
 
 ## Intro
 This widget automatically fetches information about your ford car and displays them. The widget was tested on my own Ford Focus 2020 (EcoBoost 1.5) and with an iPhone 11 Pro Max.
