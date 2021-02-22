@@ -1,8 +1,5 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
-// icon-color: blue; icon-glyph: car;
-// Variables used by Scriptable.
-// These must be at the very top of the file. Do not edit.
 
 /**************
  * Copyright (C) 2020 by Damian Schablowsky  <dschablowsky.dev@gmail.com>
@@ -34,10 +31,17 @@ Changelog:
     v1.0:
         - Created first version of widget
 
-    v.1.0.1
+    v1.0.1
         - Fixed small bug where the fuelLevel bar is not cut over 100%
         - Fixed bug where positions without sub locality would show null
         - Position value resizes now to 70% if address is too long. Testing this value, may need to decrease it further in future
+
+    v1.0.2
+        - Addes debug mode with increased output. Use this only if you have problems!!
+    v1.1
+        - Added more elements (windows big, doors small and big, odometer with distance p.a., tire pressure)
+        - You can now choose the elements of your widget
+        - Changes size of font (smaller), so that 6 elements can be displayed      
 
 **************/
 
@@ -51,7 +55,8 @@ Changelog:
 
 /**
  * 
- * Login data for account. It is only working with FordPass credentials
+ * Login data for account. It is only working with FordPass credentials and when your car has a FordPass modem!
+ * Check your car configuration. It is not sufficient if your FordPass app shows some data (odometer or oil).
  * 
  */
 const userData = {
@@ -74,14 +79,6 @@ const errorMessages = {
     'noVin': 'VIN fehlt'
 }
 
-const UIHeaders = {
-    fuelTank: 'Tank',
-    odometer: 'Kilometerstand',
-    oil: 'Ölzustand',
-    windows: 'Fenster',
-    position: 'Standort'
-}
-
 const UIValue = {
     closed: 'Geschlossen',
     open: 'Geöffnet',
@@ -90,6 +87,7 @@ const UIValue = {
     smallerOneMinute: 'Vor < 1 Minute',
     minute: 'Minute',
     hour: 'Stunde',
+    perYear: 'p.a.',
     plural: 'n', // 's' in english
     precedingAdverb: 'Vor', // used in german language, for english let it empty
     subsequentAdverb: '' // used in english language ('ago'), for german let it empty
@@ -108,6 +106,8 @@ const mapProvider = 'apple' // or 'google'
 const useIndicators = true // indicators for fuel bar
 
 const uniteOfLength = 'km' // or 'mi'
+
+const dateLeasingStart = new Date('10/19/2020') // MM/DD/YYYY start of leasing contract
 
 /**
  * Only use these if you have problems. Set them back to false once everything is working.
@@ -142,15 +142,97 @@ else {
     gasStation = 'gas-station_light.png'
 }
 
+const closedSymbol = '✓'
+const openSymbol = '✗'
 
+/*
+ * Change titleFontSize to 9 and detailFontSizeMedium to 10 for smaller displays, e.g. iPhone SE 2
+ */
 const titleFontSize = 10
 const detailFontSizeSmall = 11
-const detailFontSizeMedium = 15
+const detailFontSizeMedium = 12
 const detailFontSizeBig = 19
 
 const barWidth = 80
 const barHeight = 5
 
+/**
+ * -------------------------------
+ *| Logo  [Element 1] [Element 4] |
+ *|                               |
+ *|[Fuel] [Element 2] [Element 5] |
+ *|                               |
+ *|       [Element 3] [Element 6] |
+ * -------------------------------
+ *
+ * Height per element: 1 (H)eight (U)nit = 1 line
+ *
+ * Available elements:
+ + - odometer: 'odometer' 1 HU
+ * - odometer with expected distance per year: 'odometerLease' 2 HU
+ * - oil status: 'oil' 1HU
+ * - window status small (only text): 'windowsSmall' 1 HU
+ * - window status big (shows every window): 'windowsBig' 2 HU
+ * - door status small (only text): 'doorsSmall' 1 HU 
+ * - door status big (shows every door): 'doorsBig' 1 HU 
+ * - position: 'position' 2 HU
+ * - tire pressure: 'tirePressure' 2 HU
+ * - no element: 'none' 0 HU
+ */
+
+/*
+ *
+ * 1HU has 17 as offset, 2HU 2. Only tirePressure has a higher one since another font is used (monospaced)
+ *
+ */
+const elementHeightOffset = {
+    'odometer': 17,
+    'odometerLease': 2,
+    'oil': 17,
+    'windowsSmall': 17,
+    'windowsBig': 2,
+    'doorsSmall': 17,
+    'doorsBig': 2,
+    'position': 2,
+    'tirePressure': 4,
+    'none': 17 
+}
+
+const elementHeader = {
+    'fuelTank': 'Tank',
+    'odometer': 'Kilometerstand',
+    'odometerLease': 'Kilometerstand',
+    'oil': 'Ölzustand',
+    'windowsSmall': 'Fenster',
+    'windowsBig': 'Fenster',
+    'doorsSmall': 'Türen',
+    'doorsBig': 'Türen',
+    'position': 'Standort',
+    'tirePressure': 'Luftdruck'
+}
+
+
+/*
+* Set your elements here.
+* 
+* Warning: Use position only on element 3 or 6 since the height changes between 1 and 2 HU!!
+*/
+const arrangementElements = {
+    'element1': 'odometerLease',
+    'element2': 'doorsSmall',
+    'element3': 'position',
+    'element4': 'windowsSmall',
+    'element5': 'oil',
+    'element6': 'tirePressure',
+}
+
+/**
+ *
+ * Debug mode
+ * Use it only if you have problems with the widget!
+ *
+ */
+const debugMode = false
 
 /************************
  * 
@@ -186,6 +268,12 @@ function clearFileManager() {
 }
 
 async function createWidget() {
+    if (debugMode) {
+        console.log('Debug:')
+        console.log(`storeCredentialsInKeychain: ${storeCredentialsInKeychain.toString()}`)
+        console.log(`clearKeychainOnNextRun: ${clearKeychainOnNextRun.toString()}`)
+        console.log(`clearFileManagerOnNextRun: ${clearFileManagerOnNextRun.toString()}`)
+    }
     if (clearKeychainOnNextRun) { clearKeychain() }
     if (clearFileManagerOnNextRun) { clearFileManager() }
 
@@ -218,7 +306,7 @@ async function createWidget() {
 
     // Fuel tank header
     let row12 = column1.addStack()
-    let textRow12 = row12.addText(UIHeaders.fuelTank)
+    let textRow12 = row12.addText(elementHeader['fuelTank'])
     textRow12.font = Font.mediumSystemFont(titleFontSize)
     textRow12.textColor = new Color(textColor1)
 
@@ -262,38 +350,26 @@ async function createWidget() {
     let column2 = dataStack.addStack()
     column2.layoutVertically()
 
-    // Odometer header
+    // Element 1
     let row21 = column2.addStack()
-    let textRow21 = row21.addText(UIHeaders.odometer)
-    textRow21.font = Font.mediumSystemFont(titleFontSize)
-    textRow21.textColor = new Color(textColor1)
-
-    // Odometer value
-    info = carData.odometer ? `${Math.floor(carData.odometer*lengthMultiplicator)}${uniteOfLength}` : errorMessages.noData
     let row22 = column2.addStack()
-    let textRow22 = row22.addText(info)
-    textRow22.font = Font.mediumSystemFont(detailFontSizeBig)
-    textRow22.textColor = new Color(textColor2)
+    createElement(arrangementElements.element1, carData, row21, row22)
 
-    column2.addSpacer(15)
+    column2.addSpacer(elementHeightOffset[arrangementElements.element1])
 
-    // Window header
+    // Element 2
     let row23 = column2.addStack()
-    let textRow23 = row23.addText(UIHeaders.windows)
-    textRow23.font = Font.mediumSystemFont(titleFontSize)
-    textRow23.textColor = new Color(textColor1)
-
-    // Windows value
-    info = errorMessages.noData
-    let countOpenWindows
-    if (carData.statusWindows) {
-        countOpenWindows = Object.values(carData.statusWindows).filter(window => window === true).length
-        info = countOpenWindows == 0 ? UIValue.closed : `${countOpenWindows} ${UIValue.open}`
-    }
     let row24 = column2.addStack()
-    let textRow24 = row24.addText(info)
-    textRow24.font = Font.mediumSystemFont(detailFontSizeMedium)
-    textRow24.textColor = new Color(textColor2)
+    createElement(arrangementElements.element2, carData, row23, row24)
+
+    column2.addSpacer(elementHeightOffset[arrangementElements.element2])
+
+    // Element 3
+    let row25 = column2.addStack()
+    let row26 = column2.addStack()
+    createElement(arrangementElements.element3, carData, row25, row26)
+    
+    column2.addSpacer()
     
     dataStack.addSpacer()
 
@@ -303,43 +379,28 @@ async function createWidget() {
     let column3 = dataStack.addStack()
     column3.layoutVertically()
 
-    // Oil header
+    // Element 4
     let row31 = column3.addStack()
-    let textRow31 = row31.addText(UIHeaders.oil)
-    textRow31.font = Font.mediumSystemFont(titleFontSize)
-    textRow31.textColor = new Color(textColor1)
-
-    // Oil value
-    info = carData.oilLife ? `${carData.oilLife}%` : errorMessages.noData
     let row32 = column3.addStack()
-    let textRow32 = row32.addText(info)
-    textRow32.font = Font.mediumSystemFont(detailFontSizeBig)
-    textRow32.textColor = new Color(textColor2)
+    createElement(arrangementElements.element4, carData, row31, row32)
 
-    column3.addSpacer(15)
+    column3.addSpacer(elementHeightOffset[arrangementElements.element4])
 
-    // Position header
+    // Element 5
     let row33 = column3.addStack()
-    let textRow33 = row33.addText(UIHeaders.position)
-    textRow33.font = Font.mediumSystemFont(titleFontSize)
-    textRow33.textColor = new Color(textColor1)
-
-    // Position value
-    info = carData.position ? `${carData.position}` : errorMessages.noData
     let row34 = column3.addStack()
-    let textRow34 = row34.addText(info)
-    textRow34.font = Font.mediumSystemFont(detailFontSizeMedium)
-    textRow34.textColor = new Color(textColor2)
-    textRow34.lineLimit = 2
-    textRow34.minimumScaleFactor = 0.7
-    if (mapProvider == 'google') {
-        textRow34.url = `https://www.google.com/maps/search/?api=1&query=${carData.latitude},${carData.longitude}`
-    }
-    else {
-        textRow34.url = `http://maps.apple.com/?q=Mein+Auto&ll=${carData.latitude},${carData.longitude}`
-    }
-
-    mainStack.addSpacer(15)
+    createElement(arrangementElements.element5, carData, row33, row34)
+    
+    column3.addSpacer(elementHeightOffset[arrangementElements.element5])
+    
+    // Element 6
+    let row35 = column3.addStack()
+    let row36 = column3.addStack()
+    createElement(arrangementElements.element6, carData, row35, row36)
+    
+    column3.addSpacer()
+    
+    dataStack.addSpacer()
 
     /*
     * Refresh and error
@@ -382,7 +443,10 @@ async function fetchCarData() {
         ) {
         console.log('Fehler: ' + rawData)
         let localData = readLocalData()
-        console.log(localData)
+        if (debugMode) {
+            console.log('Debug: Try to read local data after error')
+            console.log(localData)
+        }
         if (localData) { carData = localData }
         carData.error = rawData
         return carData
@@ -412,10 +476,28 @@ async function fetchCarData() {
     // true means, that window is open
     let windows = vehicleStatus.windowPosition
     carData.statusWindows = {
-        'driver': windows.driverWindowPosition.value == 'Fully_Closed' ? false : true,
-        'pass': windows.passWindowPosition.value == 'Fully_Closed' ? false : true,
-        'rearDriver': windows.rearDriverWindowPos.value == 'Fully_Closed' ? false : true,
-        'rearPass': windows.rearPassWindowPos.value == 'Fully_Closed' ? false : true
+        'leftFront': windows.driverWindowPosition.value == 'Fully_Closed' ? false : true,
+        'rightFront': windows.passWindowPosition.value == 'Fully_Closed' ? false : true,
+        'leftRear': windows.rearDriverWindowPos.value == 'Fully_Closed' ? false : true,
+        'rightRear': windows.rearPassWindowPos.value == 'Fully_Closed' ? false : true
+    }
+    
+    //true means, that door is open
+    let doors = vehicleStatus.doorStatus
+    carData.statusDoors = {
+        'leftFront': doors.driverDoor.value == 'Closed' ? false : true,
+        'rightFront': doors.passengerDoor.value == 'Closed' ? false : true,
+        'leftRear': doors.leftRearDoor.value == 'Closed' ? false : true,
+        'rightRear': doors.rightRearDoor.value == 'Closed' ? false : true,
+    }
+    
+    //tire pressure
+    let tpms = vehicleStatus.TPMS
+    carData.tirePressure = {
+        'leftFront': pressureToFixed(tpms.leftFrontTirePressure.value, 1),
+        'rightFront': pressureToFixed(tpms.rightFrontTirePressure.value, 1),
+        'leftRear': pressureToFixed(tpms.outerLeftRearTirePressure.value, 1),
+        'rightRear': pressureToFixed(tpms.outerRightRearTirePressure.value, 1)
     }
 
     //save data to local store
@@ -444,7 +526,15 @@ async function fetchToken() {
     try {
         let token = await req.loadJSON()
         if (token.error && token.error == 'invalid_grant') { 
+            if (debugMode) {
+                console.log('Debug: Error while receiving auth data')
+                console.log(token)
+            }
             return errorMessages.invalidGrant
+        }
+        if (debugMode) {
+            console.log('Debug: Received auth data from ford server')
+            console.log(token)
         }
         Keychain.set('fpToken', token.access_token)
       
@@ -480,6 +570,10 @@ async function fetchRawData() {
     req.method = "GET"
     try {
         let data = await req.loadString()
+        if (debugMode) {
+            console.log('Debug: Received vehicle data from ford server')
+            console.log(data)
+        }
         if (data == 'Access Denied') {
             console.log('FP: Token expired. Fetching new token and fetch raw data again')
             let result = await fetchToken()
@@ -490,7 +584,10 @@ async function fetchRawData() {
             data = JSON.parse(data)
         }
         if (data.status && data.status != 200) {
-            console.log(data)
+            if (debugMode) {
+                console.log('Debug: Error while receiving vehicle data')
+                console.log(data)
+            }
             return errorMessages.connectionErrorOrVin
         }
         return data
@@ -589,6 +686,17 @@ function calculateTimeDifference(oldTime) {
     return UIValue.smallerOneMinute
 }
 
+function calculateDurationLeasing() {
+    let duration = dateLeasingStart ? ((Date.now() - dateLeasingStart.getTime()) / (1000 * 60 * 60 * 24)) : null
+    console.log((Date.now() - dateLeasingStart.getTime()) / (1000 * 60 * 60 * 24))
+    return duration  
+}
+
+function pressureToFixed(pressure, digits) {
+    let fixedPressure = pressure ? (pressure / 100).toFixed(digits) : -1
+    return fixedPressure
+}
+
 function createProgressBar(percent){
     let fuelLevel = percent > 100 ? 100 : percent
     const bar = new DrawContext()
@@ -636,4 +744,160 @@ function checkUserData(cred) {
         return userData[cred]
     }
     return null //no stored credentials
+}
+
+function createElement(element, carData, headerField, dataField) {
+    switch (element) {
+        case 'odometer':
+            elementOdometer(carData, headerField, dataField, element)
+            break
+        case 'odometerLease':
+            elementOdometerLease(carData, headerField, dataField, element)
+            break
+        case 'windowsSmall':
+            elementWindowsSmall(carData, headerField, dataField, element)
+            break
+        case 'windowsBig':
+            elementWindowsBig(carData, headerField, dataField, element)      
+            break
+        case 'doorsSmall':
+            elementDoorsSmall(carData, headerField, dataField, element)
+            break
+        case 'doorsBig':
+            elementDoorsBig(carData, headerField, dataField, element)
+            break 
+        case 'oil':
+            elementOil(carData, headerField, dataField, element)
+            break
+        case 'position':
+            elementPosition(carData, headerField, dataField, element)
+            break
+        case 'tirePressure':
+            elementTirePressure(carData, headerField, dataField, element)
+            break
+        case 'none':
+            console.log('No Element')
+            break
+        default:
+        console.log('No Element')
+    }
+}
+
+function createTitleHF(headerField, element) {
+    let textHF = headerField.addText(elementHeader[element])
+    textHF.font = Font.mediumSystemFont(titleFontSize)
+    textHF.textColor = new Color(textColor1)
+}
+
+function elementOdometer(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+    
+    let value = carData.odometer ? `${Math.floor(carData.odometer*lengthMultiplicator)}${uniteOfLength}` : errorMessages.noData
+    let textDF = dataField.addText(value)
+    textDF.font = Font.mediumSystemFont(detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+}
+
+function elementOdometerLease(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+    
+    let distance = carData.odometer ? Math.floor(carData.odometer*lengthMultiplicator) : null
+    console.log(distance)
+    let leaseDuration = calculateDurationLeasing()
+    console.log(leaseDuration)
+    let distancePerYear = (distance && leaseDuration) ? Math.floor(distance / leaseDuration * 365) : null
+    console.log(distancePerYear)
+        
+    let value = distancePerYear ? `${distance}${uniteOfLength}\n${distancePerYear}${uniteOfLength} ${UIValue.perYear}` : errorMessages.noData
+    let textDF = dataField.addText(value)
+    textDF.font = Font.mediumSystemFont(detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+    
+    let kmPerYear = carData
+}
+
+function elementOil(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+    
+    let value = carData.oilLife ? `${carData.oilLife}%` : errorMessages.noData
+    let textDF = dataField.addText(value)
+    textDF.font = Font.mediumSystemFont(detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+}
+
+function elementPosition(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+    
+    let value = carData.position ? `${carData.position}` : errorMessages.noData
+    let textDF = dataField.addText(value)
+    textDF.font = Font.mediumSystemFont(detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+    textDF.lineLimit = 2
+    textDF.minimumScaleFactor = 0.7
+    if (mapProvider == 'google') {
+        textDF.url = `https://www.google.com/maps/search/?api=1&query=${carData.latitude},${carData.longitude}`
+    }
+    else {
+        textDF.url = `http://maps.apple.com/?q=Mein+Auto&ll=${carData.latitude},${carData.longitude}`
+    }
+}
+
+function elementWindowsSmall(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+    
+    let value = errorMessages.noData
+    let countOpenWindows
+    if (carData.statusWindows) {
+        countOpenWindows = Object.values(carData.statusWindows).filter(window => window === true).length
+        value = countOpenWindows == 0 ? UIValue.closed : `${countOpenWindows} ${UIValue.open}`
+    }
+    let textDF = dataField.addText(value)
+    textDF.font = Font.mediumSystemFont(detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+    textDF.lineLimit = 1
+}
+
+function elementWindowsBig(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+    
+    let value = `${carData.statusWindows['leftFront'] ? openSymbol : closedSymbol}|${carData.statusWindows['rightFront'] ? openSymbol : closedSymbol}\n${carData.statusWindows['leftRear'] ? openSymbol : closedSymbol}|${carData.statusWindows['rightRear'] ? openSymbol : closedSymbol}`
+    let textDF = dataField.addText(value)
+    textDF.font = Font.mediumSystemFont(detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+    textDF.lineLimit = 2
+}
+
+function elementDoorsSmall(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+        
+    let value = errorMessages.noData
+    let countOpenDoors
+    if (carData.statusDoors) {
+        countOpenDoors = Object.values(carData.statusDoors).filter(door => door === true).length
+        value = countOpenDoors == 0 ? UIValue.closed : `${countOpenDoors} ${UIValue.open}`
+    }
+    let textDF = dataField.addText(value)
+    textDF.font = Font.mediumSystemFont(detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+    textDF.lineLimit = 1
+}
+
+function elementDoorsBig(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+    
+    let value = `${carData.statusDoors['leftFront'] ? openSymbol : closedSymbol}|${carData.statusDoors['rightFront'] ? openSymbol : closedSymbol}\n${carData.statusDoors['leftRear'] ? openSymbol : closedSymbol}|${carData.statusDoors['rightRear'] ? openSymbol : closedSymbol}`
+    let textDF = dataField.addText(value)
+    textDF.font = Font.mediumSystemFont(detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+    textDF.lineLimit = 2
+}
+
+function elementTirePressure(carData, headerField, dataField, element) {
+    createTitleHF(headerField, element)
+    
+    let value = `${carData.tirePressure['leftFront']}|${carData.tirePressure['rightFront']}\n${carData.tirePressure['leftRear']}|${carData.tirePressure['rightRear']}`
+    let textDF = dataField.addText(value)
+    textDF.font = new Font('Menlo-Regular', detailFontSizeMedium)
+    textDF.textColor = new Color(textColor2)
+    textDF.lineLimit = 2
 }
