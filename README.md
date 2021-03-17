@@ -21,6 +21,13 @@ new features:
 - User can pick up to 6 elements to draw on widget
 - New elements added
 
+## BETA
+Following elements are in beta tests:
+- Doors
+- Windows
+- Lock status (upcoming version)
+While the car is unlocked it sends periodically status updates to the servers. Depending on the frequency (unknown), it may happen that your car sends the "door is open" information to the server before you close it. If you lock your car right after this no further update may be sent to the server and the widgets shows that your door is open - even if it is closed. Sometimes my car is shown to be unlocked even though I´m sure that it is locked. Don´t rely on the information and be carefull!
+
 ## Todo
 - Display information for electric cars (don´t have one so I can´t test it)
 - Update function for widget
